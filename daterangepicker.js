@@ -11,7 +11,7 @@
 */
 !function ($) {
 
-    var DateRangePicker = function (element, options, cb) {
+    var DateRangePicker = function (element, options) {
         var hasOptions = typeof options == 'object';
         var today = moment().startOf('day');
         var localeObject;
@@ -24,7 +24,7 @@
         this.changed = false;
         this.ranges = {};
         this.opens = 'right';
-        this.cb = function () { };
+        this.update = hasOptions && options.update || function () { };
         this.format = 'MM/DD/YYYY';
         this.locale = {
             applyLabel:"Apply",
@@ -182,9 +182,6 @@
         if (typeof options == 'undefined' || typeof options.ranges == 'undefined')
             this.container.find('.calendar').show();
 
-        if (typeof cb == 'function')
-            this.cb = cb;
-
         this.container.addClass('opens' + this.opens);
 
         //event listeners
@@ -250,7 +247,7 @@
             this.endDate = end;
 
             this.updateView();
-            this.cb(this.startDate, this.endDate);
+            this.update(this.startDate, this.endDate);
             this.updateCalendars();
         },
 
@@ -260,7 +257,7 @@
             if (this.element.is('input')) {
                 this.element.val(this.startDate.format(this.format) + ' - ' + this.endDate.format(this.format));
             }
-            this.cb(this.startDate, this.endDate);
+            this.update(this.startDate, this.endDate);
         },
 
         move: function () {
@@ -519,11 +516,19 @@
 
     };
 
-    $.fn.daterangepicker = function (options, cb) {
+    $.fn.daterangepicker = function (options) {
+      if (options == 'getRange') {
+        var picker = $(this[0]).data('daterangepicker')
+
+        return [picker.startDate, picker.endDate]
+      }
+
       this.each(function() {
         var el = $(this);
-        if (!el.data('daterangepicker'))
-          el.data('daterangepicker', new DateRangePicker(el, options, cb));
+
+        if (!el.data('daterangepicker')) {
+          el.data('daterangepicker', new DateRangePicker(el, options));
+        }
       });
       return this;
     };
